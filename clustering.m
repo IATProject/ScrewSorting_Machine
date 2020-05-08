@@ -2,7 +2,7 @@
 %  function  clusters = clustering(img_norm)
 %  purpose:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  input arguments dd
+%  input arguments
 %       img_norm:
 %  output arguments
 %       clusters:

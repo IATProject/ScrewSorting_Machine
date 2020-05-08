@@ -1,8 +1,5 @@
 function clusters = clustering_YOLO(img_rgb, YOLO)
 
-figure();
-imshow(img_rgb);
-
 detector = YOLO.detector;
 inputSize = YOLO.inputSize;
 

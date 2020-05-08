@@ -10,12 +10,11 @@ close all
 %% -------- TRAIN DEEP LEARNING NETWORK --------
 % CNN for classifying elements
 CNN = load('trained_net.mat');
-detector = CNN.trained_net;
+detector.CNN = CNN.trained_net;
 
 % YOLO for classifying elements
 % Load pretrained YOLO detector 
-% detector.YOLO = load('YOLO/detector_224_first100.mat');
-
+detector.YOLO = load('detector_Testimages_4_dataset1_left_rand_200');
 
 %% -------- CALIBRATION --------
 % needs to be done once (for a specific setup (camera position))
@@ -33,8 +32,14 @@ scale = 0.14676;            %have to be very precicly, error 5px ~ 0.32mm
 
 %% -------- DETECT ELEMENT ----------
 
-img_rgb = imread('images/Testimages_3/img_13.jpg');
+img_rgb = imread('images/Testimages_4/img_44.jpg');
 elements = detect_element(img_rgb,detector,scale);
 
+% Show detected objects
+annotations = string(elements.type);
+I = insertObjectAnnotation(img_rgb,'rectangle',elements.bbox,cellstr(annotations));
+figure();imshow(I)
+hold on
+plot(elements.grasp_point(1),elements.grasp_point(2),'*');
 
 
