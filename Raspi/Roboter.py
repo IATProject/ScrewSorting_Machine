@@ -17,18 +17,18 @@ class Roboter:
         self.steps = 100
         self.tSleep = 0.005
         self.tSleepClOn = 0.03
-        self.lightOn = False
-        self.EMOn = False
         self.deltaAngleMin = 1
-        self.shakeLevel = 30
+        self.shakeLevel = 25
         self.timeCurrentLimitStart = -1
         self.CurrentLimitActive = False
         self.timeCurrentLimitMin = 0.1
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(18, GPIO.OUT) # light
-        GPIO.setup(22, GPIO.OUT) # electro magnet
+        GPIO.setup(38, GPIO.OUT) # electro magnet
+        GPIO.setup(40, GPIO.OUT) # electro magnet
         GPIO.output(18, GPIO.HIGH)
-        GPIO.output(22, GPIO.LOW)
+        GPIO.output(38, GPIO.LOW)
+        GPIO.output(40, GPIO.LOW)
         GPIO.setup(16, GPIO.IN)
     
     
@@ -37,13 +37,18 @@ class Roboter:
             GPIO.output(18, GPIO.LOW)
         else:
             GPIO.output(18, GPIO.HIGH)
-
+            
 
     def setEM(self, on):
         if on == True:
-            GPIO.output(22, GPIO.HIGH)
+            GPIO.output(38, GPIO.HIGH)
+            GPIO.output(40, GPIO.LOW)
         else:
-            GPIO.output(22, GPIO.LOW)
+            GPIO.output(38, GPIO.LOW)
+            time.sleep(0.5)
+            GPIO.output(40, GPIO.HIGH)
+            time.sleep(0.1)
+            GPIO.output(40, GPIO.LOW)
     
     
     def currentLimitReached(self):
@@ -61,7 +66,67 @@ class Roboter:
                 return False
         else:
             return False
+
+
+    def moveL(self,xSoll,ySoll,zSoll,curLimitActiv):
+        [xOld,yOld,zOld] = self.abg2xyz()
         
+        xErreicht = False
+        yErreicht = False
+        zErreicht = False
+        
+        if (xSoll-xOld) > 0:
+            deltaMoveX = 1
+        else:
+            deltaMoveX = -1
+        
+        if (ySoll-yOld) > 0:
+            deltaMoveY = 1
+        else:
+            deltaMoveY = -1
+            
+        if (zSoll-zOld) > 0:
+            deltaMoveZ = 1
+        else:
+            deltaMoveZ = -1
+        
+        x_ = xOld
+        y_ = yOld
+        z_ = zOld
+        
+        while (not xErreicht or not yErreicht or not zErreicht):
+            
+            if self.currentLimitReached() and curLimitActiv:
+                print("Current limit")
+                break
+            
+            if abs(xSoll-x_) <= abs(2*deltaMoveX):
+                x_ = xSoll
+                xErreicht = True
+            else:
+                x_ = x_ + deltaMoveX
+            
+            if abs(ySoll-y_) <= abs(2*deltaMoveY):
+                y_ = ySoll
+                yErreicht = True
+            else:
+                y_ = y_ + deltaMoveY
+            
+            if abs(zSoll-z_) <= abs(2*deltaMoveZ):
+                z_ = zSoll
+                zErreicht = True
+            else:
+                z_ = z_ + deltaMoveZ
+            
+            if curLimitActiv:
+                time.sleep(self.tSleepClOn)
+            else:
+                time.sleep(self.tSleep)
+            
+            # print("x:" + str(x_) + " y:" + str(y_) + " z:" + str(z_))
+            
+            self.writePosition(x_,y_,z_)
+
         
     def moveJ(self,x,y,z,curLimitActiv):
         [alphaSoll, betaSoll, gammaSoll] = self.xyz2abg(x,y,z)
@@ -148,28 +213,28 @@ class Roboter:
         
         if self.alpha > alpha_max:
             alpha = alpha_max
-            print("Alpha max reached")
+            print("Alpha max reached (" + str(self.alpha) +")")
         elif self.alpha < alpha_min:
             alpha = alpha_min
-            print("Alpha min reached")
+            print("Alpha min reached (" + str(self.alpha) +")")
         else:
             alpha = self.alpha
         
         if self.beta > beta_max:
             beta = beta_max
-            print("Beta max reached")
+            print("Beta max reached (" + str(self.beta) +")")
         elif self.beta < beta_min:
             beta = beta_min
-            print("Beta min reached")
+            print("Beta min reached" + str(self.beta) +")")
         else:
             beta = self.beta
             
         if self.gamma > gamma_max:
             gamma = gamma_max
-            print("Gamma max reached")
+            print("Gamma max reached (" + str(self.gamma) +")")
         elif self.gamma < gamma_min:
             gamma = gamma_min
-            print("Gamma min reached")
+            print("Gamma min reached (" + str(self.gamma) +")")
         else:
             gamma = self.gamma
         
@@ -221,7 +286,7 @@ class Roboter:
         # +10/-16 ... Endeffector
         x = (x_+10)*cos(alpha_)
         y = (x_+10)*sin(alpha_)
-        z = z_ + z0 - 16
+        z = z_ + z0 - 15
         
         return [x, y, z]
 
@@ -230,41 +295,43 @@ class Roboter:
         
         # Subtract position of endeffector
         if(x==0 and y==0):
-            alpha = 0
+            alpha = 0.0
         elif(x==0):
-            alpha = 90*math.pi/180*copysign(1,y)
+            alpha = 90.0*math.pi/180.0*copysign(1,y)
         elif(y==0):
             if(copysign(1,y) == 1):
-                alpha = 0
+                alpha = 0.0
             else:
                 alpha = math.pi
         else:
             alpha = atan2(y,x)
 
-        x = x - 10*cos(alpha)
-        y = y - 10*sin(alpha)
-        z = z + 16
+        x = x - 10.0*cos(alpha)
+        y = y - 10.0*sin(alpha)
+        z = z + 15.0
         
         [x_, z_, alpha] = self.xyz2xza(x,y,z)
 
-        z0 = 58
-        l1 = 80
-        l2 = 80
+        z0 = 58.0
+        l1 = 80.0
+        l2 = 80.0
 
         # Avoid singularity
-        delta = 0.001
-        if z_ > z0-delta and z_< z0+delta:
-            z_ = z0+delta
-
-        if(z<58):
+        delta = 0.1
+        if abs(z_-z0) < delta:
+            z_ = 58.0 + delta
+        
+        if(z_<58.0):
             beta = atan2((z0**2*x_ - 2*z0*x_*z_ + l1**2*x_ - l2**2*x_ + x_**3 + x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(z0**2 - 2*z0*z_ + x_**2 + z_**2), (x_*(z0**2*x_ - 2*z0*x_*z_ + l1**2*x_ - l2**2*x_ + x_**3 + x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(z0**2 - 2*z0*z_ + x_**2 + z_**2) - z0**2 + 2*z0*z_ - l1**2 + l2**2 - x_**2 - z_**2)/(z0 - z_))
             gamma = atan2(-(z0**2*x_ - 2*z0*x_*z_ + l1**2*x_ - l2**2*x_ + x_**3 + x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(2*(z0**2 - 2*z0*z_ + x_**2 + z_**2)) + x_, (x_*(z0**2*x_ - 2*z0*x_*z_ + l1**2*x_ - l2**2*x_ + x_**3 + x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(z0**2 - 2*z0*z_ + x_**2 + z_**2) + z0**2 - 2*z0*z_ - l1**2 + l2**2 - x_**2 + z_**2)/(2*(z0 - z_)))
         else:
             beta = atan2(-(-z0**2*x_ + 2*z0*x_*z_ - l1**2*x_ + l2**2*x_ - x_**3 - x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(2*(z0**2 - 2*z0*z_ + x_**2 + z_**2)), (-x_*(-z0**2*x_ + 2*z0*x_*z_ - l1**2*x_ + l2**2*x_ - x_**3 - x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(z0**2 - 2*z0*z_ + x_**2 + z_**2) - z0**2 + 2*z0*z_ - l1**2 + l2**2 - x_**2 - z_**2)/(2*(z0 - z_)))
             gamma = atan2((-z0**2*x_ + 2*z0*x_*z_ - l1**2*x_ + l2**2*x_ - x_**3 - x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(2*(z0**2 - 2*z0*z_ + x_**2 + z_**2)) + x_, (-x_*(-z0**2*x_ + 2*z0*x_*z_ - l1**2*x_ + l2**2*x_ - x_**3 - x_*z_**2 + sqrt(-z0**6 + 6*z0**5*z_ + 2*z0**4*l1**2 + 2*z0**4*l2**2 - 2*z0**4*x_**2 - 15*z0**4*z_**2 - 8*z0**3*l1**2*z_ - 8*z0**3*l2**2*z_ + 8*z0**3*x_**2*z_ + 20*z0**3*z_**3 - z0**2*l1**4 + 2*z0**2*l1**2*l2**2 + 2*z0**2*l1**2*x_**2 + 12*z0**2*l1**2*z_**2 - z0**2*l2**4 + 2*z0**2*l2**2*x_**2 + 12*z0**2*l2**2*z_**2 - z0**2*x_**4 - 12*z0**2*x_**2*z_**2 - 15*z0**2*z_**4 + 2*z0*l1**4*z_ - 4*z0*l1**2*l2**2*z_ - 4*z0*l1**2*x_**2*z_ - 8*z0*l1**2*z_**3 + 2*z0*l2**4*z_ - 4*z0*l2**2*x_**2*z_ - 8*z0*l2**2*z_**3 + 2*z0*x_**4*z_ + 8*z0*x_**2*z_**3 + 6*z0*z_**5 - l1**4*z_**2 + 2*l1**2*l2**2*z_**2 + 2*l1**2*x_**2*z_**2 + 2*l1**2*z_**4 - l2**4*z_**2 + 2*l2**2*x_**2*z_**2 + 2*l2**2*z_**4 - x_**4*z_**2 - 2*x_**2*z_**4 - z_**6))/(z0**2 - 2*z0*z_ + x_**2 + z_**2) + z0**2 - 2*z0*z_ - l1**2 + l2**2 - x_**2 + z_**2)/(2*(z0 - z_)))
         
-        alpha = alpha.real*180/math.pi
-        beta = beta.real*180/math.pi
-        gamma = gamma.real*180/math.pi
+        alpha = alpha.real*180.0/math.pi
+        beta = beta.real*180.0/math.pi
+        gamma = gamma.real*180.0/math.pi
+        
+        #print("x_:" + str(x_) + " z_:" + str(z_) + " beta:" + str(beta) + " gamma:" + str(gamma))
         
         return [alpha, beta, gamma]

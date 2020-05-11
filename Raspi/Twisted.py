@@ -9,14 +9,22 @@ class ServerProtocol(protocol.Protocol):
     def dataReceived(self,data):
         msg = data.decode("utf-8")
         
-        if msg[0:4] == "Goto":
-            pos = list(map(float,msg[5:].split(',')))
-            print("Goto " + str(pos))
-            self.Roboter.moveJ(pos[0],pos[1],pos[2],False)
-        elif msg[0:8] == "ClOnGoto":
-            pos = list(map(float,msg[9:].split(',')))
-            print("ClOnGoto " + str(pos))
+        if msg[0:7] == "moveJCl":
+            pos = list(map(float,msg[8:].split(',')))
+            print("moveJCl " + str(pos))
             self.Roboter.moveJ(pos[0],pos[1],pos[2],True)
+        elif msg[0:5] == "moveJ":
+            pos = list(map(float,msg[6:].split(',')))
+            print("moveJ " + str(pos))
+            self.Roboter.moveJ(pos[0],pos[1],pos[2],False)
+        elif msg[0:7] == "moveLCl":
+            pos = list(map(float,msg[8:].split(',')))
+            print("moveL " + str(pos))
+            self.Roboter.moveL(pos[0],pos[1],pos[2],True)
+        elif msg[0:5] == "moveL":
+            pos = list(map(float,msg[6:].split(',')))
+            print("moveL " + str(pos))
+            self.Roboter.moveL(pos[0],pos[1],pos[2],False)
         elif msg[0:6] == "Angles":
             ang = list(map(float,msg[7:].split(',')))
             print("Angles " + str(ang))
@@ -30,11 +38,11 @@ class ServerProtocol(protocol.Protocol):
             status = bool(int(msg[6:7]))
             print("Light " + str(status))
             self.Roboter.setLight(status)
-        elif msg[0:5] == "Shake":
-            print("Shake")
+        elif msg[0:5] == "shake":
+            print("shake")
             self.Roboter.shake()
-        elif msg[0:10] == "CaptureImg":
-            print("Capture Image")
+        elif msg[0:10] == "captureImg":
+            print("capture image")
             self.Camera.capture()
         else:
             print("Invalid command")
