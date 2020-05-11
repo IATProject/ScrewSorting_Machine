@@ -15,16 +15,21 @@ class Roboter:
         self.beta = 0
         self.gamma = 90
         self.steps = 100
-        self.tSleep = 0.003
+        self.tSleep = 0.005
+        self.tSleepClOn = 0.03
         self.lightOn = False
         self.EMOn = False
         self.deltaAngleMin = 1
-        self.shakeLevel = 10
+        self.shakeLevel = 30
+        self.timeCurrentLimitStart = -1
+        self.CurrentLimitActive = False
+        self.timeCurrentLimitMin = 0.1
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(18, GPIO.OUT) # light
         GPIO.setup(22, GPIO.OUT) # electro magnet
         GPIO.output(18, GPIO.HIGH)
         GPIO.output(22, GPIO.LOW)
+        GPIO.setup(16, GPIO.IN)
     
     
     def setLight(self, on):
@@ -39,9 +44,26 @@ class Roboter:
             GPIO.output(22, GPIO.HIGH)
         else:
             GPIO.output(22, GPIO.LOW)
-
+    
+    
+    def currentLimitReached(self):
+        if GPIO.input(16) == GPIO.HIGH:
+            if self.CurrentLimitActive == False:
+                self.timeCurrentLimitStart = time.time()
+                self.CurrentLimitActive = True
+        else:
+            self.CurrentLimitActive = False
         
-    def moveJ(self,x,y,z):
+        if self.CurrentLimitActive == True:
+            if (time.time()-self.timeCurrentLimitStart) > self.timeCurrentLimitMin:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
+        
+    def moveJ(self,x,y,z,curLimitActiv):
         [alphaSoll, betaSoll, gammaSoll] = self.xyz2abg(x,y,z)
         
         alphaErreicht = False
@@ -53,6 +75,10 @@ class Roboter:
         deltaGamma = (gammaSoll - self.gamma)/self.steps
         
         while (not alphaErreicht or not betaErreicht or not gammaErreicht):
+            
+            if self.currentLimitReached() and curLimitActiv:
+                print("Current limit")
+                break
             
             if abs(alphaSoll-self.alpha) <= self.deltaAngleMin:
                 self.alpha = alphaSoll
@@ -81,7 +107,10 @@ class Roboter:
             else:
                 self.gamma = self.gamma + deltaGamma
             
-            time.sleep(self.tSleep)
+            if curLimitActiv:
+                time.sleep(self.tSleepClOn)
+            else:
+                time.sleep(self.tSleep)
             
             self.writeAngles()
         
@@ -147,7 +176,6 @@ class Roboter:
         alpha_us = 500 + (alpha+77)/180*2000
         beta_us = 500 + (beta+35)/180*2000
         gamma_us = 500 + (gamma+62)/180*2000
-        #gamma_us = 500 + (gamma*100/90+52)/180*2000
         
         # 500us ... 2500us
         self.pi.set_servo_pulsewidth(14, alpha_us)
@@ -190,15 +218,33 @@ class Roboter:
         x_ = l1*sin(beta_) + l2*sin(gamma_)
         z_ = l1*cos(beta_) - l2*cos(gamma_)
         
-        x = x_*cos(alpha_)
-        y = x_*sin(alpha_)
-        z = z_ + z0
+        # +10/-16 ... Endeffector
+        x = (x_+10)*cos(alpha_)
+        y = (x_+10)*sin(alpha_)
+        z = z_ + z0 - 16
         
         return [x, y, z]
 
     
     def xyz2abg(self,x,y,z):
+        
+        # Subtract position of endeffector
+        if(x==0 and y==0):
+            alpha = 0
+        elif(x==0):
+            alpha = 90*math.pi/180*copysign(1,y)
+        elif(y==0):
+            if(copysign(1,y) == 1):
+                alpha = 0
+            else:
+                alpha = math.pi
+        else:
+            alpha = atan2(y,x)
 
+        x = x - 10*cos(alpha)
+        y = y - 10*sin(alpha)
+        z = z + 16
+        
         [x_, z_, alpha] = self.xyz2xza(x,y,z)
 
         z0 = 58
