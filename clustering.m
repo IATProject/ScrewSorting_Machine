@@ -7,7 +7,7 @@
 %  output arguments
 %       clusters:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function clusters = clustering(img_rgb)
+function clusters = clustering(img_rgb,parameter)
 
 % Convert to grayscale and normalize (0-1)
 img_norm = rgb2gray(double(img_rgb)./255.0);
@@ -17,16 +17,16 @@ resize_factor = 0.5;
 img_norm = imresize(img_norm, resize_factor);
 
 % Binarize image
-img_bin = imbinarize(img_norm,0.5);    
+img_bin = imbinarize(img_norm,0.5);
 img_bin = im2uint8(img_bin);
 
 img_bin = ~img_bin;
 
 img_bin = imfill(img_bin, 'holes');
 
-% Morphological closing to fill gaps
-se = strel('disk',8);
-img_bin = imclose(img_bin,se);
+% % Morphological closing to fill gaps
+% se = strel('disk',8);
+% img_bin = imclose(img_bin,se);
 
 % Get connected pixels (clusters)
 stat = regionprops(img_bin, 'Area', 'BoundingBox', 'PixelIdxList');
@@ -86,22 +86,24 @@ for i=1:length(stat)
     
 end
 
-% figure();
-% 
-% subplot(2, 2, 1);
-% imshow(img_norm);
-% title('Normalized Image')
-% 
-% subplot(2, 2, 2);
-% imshow(img_bin);
-% title('Binarized image')
-% 
-% subplot(2, 2, 3);
-% imshow(img_bin);
-% title('Morphologically closed image')
-% 
-% subplot(2, 2, 4);
-% imshow(img_bin);
-% title('Small areas removed')
+if parameter.plots
+    figure();
+    
+    subplot(2, 2, 1);
+    imshow(img_norm);
+    title('Normalized Image')
+    
+    subplot(2, 2, 2);
+    imshow(img_bin);
+    title('Binarized image')
+    
+    subplot(2, 2, 3);
+    imshow(img_bin);
+    title('Morphologically closed image')
+    
+    subplot(2, 2, 4);
+    imshow(img_bin);
+    title('Small areas removed')
+end
 
 end
