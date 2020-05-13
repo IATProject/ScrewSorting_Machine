@@ -78,8 +78,10 @@ else % Determine objects
         %in case no YOLO bbox exist, but a cluster bbox (unknown object)
         if isequal('anything',predicted_label)
             elements{i}.type = 'anything';
-            elements{1}.grasp_point = [-1,-1];
             elements{i}.bbox = [cluster_bbox(1) + cut_left, cluster_bbox(2) + cut_up, cluster_bbox(3:4)];
+            xCenter = cluster_bbox(1) + cluster_bbox(3)/2;
+            yCenter = cluster_bbox(2) + cluster_bbox(4)/2;
+            elements{i}.grasp_point = [xCenter,yCenter];
             error_info(4);
             return
         end
