@@ -57,8 +57,7 @@ end
 clusters = clustering(img_rgb,parameter);
 
 if isempty(fieldnames(clusters))    % Check if the cluster is empty
-    elements{1}.type = 'anything';
-    elements{1}.grasp_point = [-1,-1];
+    elements{1}.type = 'nothing';
     error_info(2);
 else % Determine objects
     for i=1:length(clusters)

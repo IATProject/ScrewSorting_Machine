@@ -46,9 +46,13 @@ for i=1:length(elements)
         annotations = sprintf('washer,Din=%dmm,Dout=%dmm', elements{1,i}.inner_radius, elements{1,i}.outer_radius);
     elseif isequal('anything',type)
         annotations = sprintf('anything');
+    elseif isequal('nothing',type)
+        annotations = sprintf('nothing');
     end
-    img_rgb = insertObjectAnnotation(img_rgb,'rectangle',elements{1,i}.bbox,cellstr(annotations));
-    img_rgb = insertMarker(img_rgb,[elements{1,i}.grasp_point(1),elements{1,i}.grasp_point(2)],'star','Color','blue','size',5);
+    if ~isequal('nothing',type)
+        img_rgb = insertObjectAnnotation(img_rgb,'rectangle',elements{1,i}.bbox,cellstr(annotations));
+        img_rgb = insertMarker(img_rgb,[elements{1,i}.grasp_point(1),elements{1,i}.grasp_point(2)],'star','Color','blue','size',5);
+    end
 end
 figure(img);imshow(img_rgb)
 
