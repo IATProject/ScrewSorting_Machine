@@ -1,4 +1,5 @@
 # !/usr/bin/env python
+# copyright Simon
 
 from Master import Master
 import time
