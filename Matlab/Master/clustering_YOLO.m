@@ -1,4 +1,4 @@
-function clusters = clustering_YOLO(img_rgb, YOLO)
+function clusters = clustering_YOLO(img_rgb, YOLO, parameter)
 
 detector = YOLO.detector;
 inputSize = YOLO.inputSize;
@@ -16,10 +16,15 @@ clusters.bbox = bbox;
 clusters.score = score;
 clusters.label = string(label);
 
+if isempty(label)
+    error_info(4);
+end
 
 % Display the results.
+if parameter.plots && ~isempty(label)
 annotations = string(label) + ": " + string(score);
-I = insertObjectAnnotation(img_rgb,'rectangle',bbox,cellstr(annotations));
+I = insertObjectAnnotation(I,'rectangle',bbox,cellstr(annotations));
 figure
 imshow(I)
+end
 

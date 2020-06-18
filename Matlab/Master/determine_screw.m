@@ -34,7 +34,7 @@ Qy = k1*Qx+d1;
 d  = sqrt((Qx-C.Location(:,1)).^2+(Qy-C.Location(:,2)).^2);
 
 % Voting-histogram
-edges_r = parameter.min_D / parameter.scale;
+edges_r = parameter.res_D / parameter.scale;
 max_r   = parameter.max_D / parameter.scale;
 edges = (0:edges_r:max_r);
 N = histcounts(d,edges);
@@ -50,7 +50,7 @@ y_cp = x_cp*p_fit_rot(1)+p_fit_rot(2);
 %cut the image with respect to an error in the radius,
 img_cut(round(y_cp-(r*(1+parameter.error_sR))):round(y_cp+(r*(1+parameter.error_sR))),:) = 0;
 %remove small remaining areas
-area_opening = round(numel(find(img_cut))*parameter.area_sFac);                        
+area_opening = round(numel(find(img_cut))*parameter.area_sFac);
 img_cut = bwareaopen(img_cut,area_opening,8);
 
 %find the leftmost point or the rightest point
@@ -75,19 +75,19 @@ L_mm = abs(x_max_body-x_min_body)*parameter.scale;
 L_mm = round(L_mm,parameter.digits);
 
 
-% Parameter to struct, catch error (have to be better!!!)
-if ~isempty(D_mm) && ~isempty(L_mm)
-    if D_mm <= parameter.max_D && D_mm >= parameter.min_D ...
-            && L_mm <= parameter.max_L && L_mm >= parameter.min_L
-        element.type = 'screw';
-        element.grasp_point=[grasp_x,grasp_y];
-        element.diameter=D_mm;
-        element.length=L_mm;
-    else
-        element.type = 'anything';
-    end
+% Parameter to struct, catch error in calculation
+if ~isempty(D_mm) && ~isempty(L_mm) ...
+        && D_mm <= parameter.max_D && D_mm >= parameter.min_D ...
+        && L_mm <= parameter.max_L && L_mm >= parameter.min_L
+    
+    element.type = 'screw';
+    element.grasp_point=[grasp_x,grasp_y];
+    element.diameter=D_mm;
+    element.length=L_mm;
 else
     element.type = 'anything';
+    element.grasp_point=[grasp_x,grasp_y];
+    error_info(3);
 end
 
 
