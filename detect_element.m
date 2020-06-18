@@ -4,28 +4,24 @@ function elements = detect_element(img_rgb_full,detector,scale)
 parameter.plots = 0;            %[1,0] = plots on/off
 parameter.area_sFac = 0.05;     %threshold of the removing areas
 parameter.error_sR = 0.05;      %threshold of the error in the calculated radius (screw)
-parameter.binlevel = 0.85;      %binarize level
+parameter.binlevel = 0.8;      %binarize level
 parameter.downsample = 0.5;     %downsample the image (washer,nut)
-parameter.olapRatio_max = 0.1; %max overlap ratio between two bbox's
-parameter.olapRatio_min = 0.8;  %min overlap ratio between two bbox's
+parameter.olapRatio_max = 0.26; %max overlap ratio between two bbox's
+parameter.olapRatio_min = 0.7;  %min overlap ratio between two bbox's
 parameter.scale = scale;        %scaling factor
-parameter.res_D = 0.02;         %resolution in the calculation of the diameter
-parameter.digits = 1;           %digits after the comma for the results
+parameter.res_D = 0.2;         %resolution in the calculation of the diameter
+parameter.digits = 0;           %digits after the comma for the results
 parameter.max_L = 50;           %max/min length of the elements
 parameter.min_L = 5;
-parameter.max_D = 9;           %max/min diameter of the elements
+parameter.max_D = 20;           %max/min diameter of the elements
 parameter.min_D = 2.5;
 
 
 % Mask to get only the left side of the bright table (old mask up, new mask down)
-% cut_up = 58;
-% cut_down = 73;
-% cut_left = 68;
-% cut_right = 463;
-cut_up = 80;
-cut_down = 50;
-cut_left = 70;
-cut_right = 460;
+cut_up = 1;
+cut_down = 0;
+cut_left = 1;
+cut_right = 0;
 img_size_x = size(img_rgb_full,1);
 img_size_y = size(img_rgb_full,2);
 % figure(); subplot(1,2,1); imshow(img_rgb_full);

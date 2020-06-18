@@ -41,8 +41,8 @@ end
 
 % Plots
 if parameter.plots == 1
-    subplot(3,4,1); imshow(img_norm); title('normalized');
-    subplot(3,4,2); imshow(img_bin); title('binarized');
-    subplot(3,4,3); imshow(img); title('removed small areas');
+    subplot(3,4,1); imshow(img_norm); title('Normalized');
+    subplot(3,4,2); imshow(img_bin); title('äbinarized');
+    subplot(3,4,3); imshow(img); title('Removed small areas');
 end
 
