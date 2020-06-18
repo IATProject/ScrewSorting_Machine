@@ -18,7 +18,7 @@ class Roboter:
         self.tSleep = 0.005
         self.tSleepClOn = 0.03
         self.deltaAngleMin = 1
-        self.shakeLevel = 25
+        self.shakeLevel = 20
         self.timeCurrentLimitStart = -1
         self.CurrentLimitActive = False
         self.timeCurrentLimitMin = 0.1
@@ -45,9 +45,9 @@ class Roboter:
             GPIO.output(40, GPIO.LOW)
         else:
             GPIO.output(38, GPIO.LOW)
-            time.sleep(0.5)
-            GPIO.output(40, GPIO.HIGH)
             time.sleep(0.1)
+            GPIO.output(40, GPIO.HIGH)
+            time.sleep(0.001)
             GPIO.output(40, GPIO.LOW)
     
     
@@ -184,6 +184,7 @@ class Roboter:
         [self.alpha, self.beta, self.gamma] = self.xyz2abg(x,y,z)
         self.writeAngles()
     
+    
     def shake(self):
         [xOld,yOld,zOld] = self.abg2xyz()
         self.writePosition(xOld,yOld,zOld+self.shakeLevel)
@@ -261,10 +262,10 @@ class Roboter:
                 x_ = r*sin(acos(z/r))
            
         if(x==0 and y==0):
-            alpha = 0
+            alpha = 0.0
         else:
             if x/x_ > 1:
-                alpha = 0
+                alpha = 0.0
             else:
                 alpha = acos(x/x_)*copysign(1,y)
 

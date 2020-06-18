@@ -42,8 +42,9 @@ class ServerProtocol(protocol.Protocol):
             print("shake")
             self.Roboter.shake()
         elif msg[0:10] == "captureImg":
+            id = int(msg[11:])
             print("capture image")
-            self.Camera.capture()
+            self.Camera.capture(id)
         else:
             print("Invalid command")
         
