@@ -59,6 +59,7 @@ img_cut = bwareaopen(img_cut,area_opening,8);
 [x_min_cut,x_mini_cut] = min(x_cut);
 
 % calculate the orientation of the screw, than cut the image
+L_mm = 0;
 if ~isempty(x_cut)
     if x_max_cut  < size(img_rot,2)/2  &&  x_min_cut  < size(img_rot,2)*2/3   %left
         seg_head = img_rot(:,1:x_max_cut);
@@ -67,15 +68,13 @@ if ~isempty(x_cut)
         seg_body = img_rot(:,1:x_min_cut);
         seg_head = img_rot(:,x_min_cut+1:end);
     end
-end
-
 % calculate the length
 [y_body,x_body] = find(seg_body);
 [x_max_body,x_maxi_body] = max(x_body);
 [x_min_body,x_mini_body] = min(x_body);
 L_mm = abs(x_max_body-x_min_body)*parameter.scale;
 L_mm = round(L_mm,parameter.digits);
-
+end
 
 % Parameter to struct, catch error in calculation
 if ~isempty(D_mm) && ~isempty(L_mm) ...
