@@ -70,7 +70,7 @@ if ~isempty(x_cut)
 end
 
 % calculate the length
-[y_body,x_body] = find(x_body);
+[y_body,x_body] = find(seg_body);
 [x_max_body,x_maxi_body] = max(x_body);
 [x_min_body,x_mini_body] = min(x_body);
 L_mm = abs(x_max_body-x_min_body)*parameter.scale;
