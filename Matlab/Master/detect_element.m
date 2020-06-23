@@ -18,14 +18,10 @@ parameter.min_D = 2.5;
 
 
 % Mask to get only the left side of the bright table (old mask up, new mask down)
-% cut_up = 58;
-% cut_down = 73;
-% cut_left = 68;
-% cut_right = 463;
-cut_up = 80;
-cut_down = 50;
-cut_left = 70;
-cut_right = 460;
+cut_up = 1;
+cut_down = 0;
+cut_left = 1;
+cut_right = 0;
 img_size_x = size(img_rgb_full,1);
 img_size_y = size(img_rgb_full,2);
 % figure(); subplot(1,2,1); imshow(img_rgb_full);

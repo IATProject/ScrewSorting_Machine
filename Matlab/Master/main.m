@@ -7,8 +7,8 @@ tClient = tcpclient('192.168.1.243', 3000);
 
 %% -------- TRAIN DEEP LEARNING NETWORK --------
 % CNN for classifying elements
-CNN = load('trained_net.mat');
-detector.CNN = CNN.trained_net;
+% CNN = load('trained_net.mat');
+% detector.CNN = CNN.trained_net;
 
 % YOLO for classifying elements
 % Load pretrained YOLO detector
@@ -36,13 +36,12 @@ while true
     
     if state == "init"
         moveL(80,50,140,false);
+        controlLight(true);
+        pause(2);
         state = "getProbe";
     elseif state == "getProbe"
         moveL(80,50,140,false);
-        controlLight(true);
-        pause(2);
         captureImage();
-        controlLight(false);
         gp = getGraspingPointRight();
         if gp(1) == -1
             state = "exit";
@@ -52,7 +51,7 @@ while true
         moveL(x,y,50,false);
         moveL(x,y,0,true);
         controlEM(true);
-        moveL(80,50,50,false);
+        moveL(x,y,50,false);
         moveL(80,-40,50,false);
         controlEM(false);
         moveL(80,-90,20,false);
@@ -61,10 +60,7 @@ while true
         state = "processImg";
     elseif state == "processImg"
         repeateProcess = false;
-        controlLight(true);
-        pause(2);
         captureImage();
-        controlLight(false);
         img_rgb = getImageLeft();
         elements = detect_element(img_rgb,detector,scale);
         displayDetectedElements(img_rgb,elements);
@@ -78,13 +74,13 @@ while true
                 moveL(x,y,z,true);
                 controlEM(true);
                 moveL(x,y,100,false);
-                moveJ(0,-80,100,false);
-                moveL(0,-80,70,false);
+                moveL(0,-100,100,false);
+                moveL(0,-100,60,false);
                 controlEM(false);
-                moveL(0,-80,55,false);
-                moveL(0,-35,55,false);
-                moveL(0,-35,100,false);
-                %moveJ(x,y,50,false);
+                moveL(0,-100,38,false);
+                moveL(0,-50,38,false);
+                moveL(0,-50,100,false);;
+                moveJ(70,0,100,false)
             elseif isequal('nut',type)
                 gp = elements{1,i}.grasp_point;
                 [x,y,z] = cam2roboter(gp(1), gp(2));
@@ -97,7 +93,7 @@ while true
                 controlEM(false);
                 moveL(15,40,53,false);
                 moveL(15,40,100,false);
-                %moveJ(x,y,50,false);
+                moveJ(70,0,100,false)
             elseif isequal('washer',type)
                 gp = elements{1,i}.grasp_point;
                 [x,y,z] = cam2roboter(gp(1), gp(2));
@@ -109,8 +105,8 @@ while true
                 moveL(-10,80,53,false);
                 controlEM(false);
                 moveL(-10,40,53,false);
-                moveL(-10,100,53,false);
-                %moveJ(x,y,50,false);
+                moveL(-10,40,100,false);
+                moveJ(70,0,100,false)
             elseif isequal('anything',type)
                 gp = elements{1,i}.grasp_point;
                 [x,y,z] = cam2roboter(gp(1), gp(2));
@@ -137,6 +133,8 @@ while true
     end
 end
 
+controlLight(false);
+
 %%
 global tClient
 tClient = tcpclient('192.168.1.243', 3000);
@@ -148,10 +146,6 @@ controlEM(false);
 %controlEM(false);
 
 %%
-moveL(130,8,20,false);
-%moveL(15,40,53,false);
-
-%%
 controlLight(true);
 pause(4);
 captureImage();
@@ -159,14 +153,13 @@ controlLight(false)
 
 
 %%
-img_rgb = getImageLeft();
+img_rgb = getImageRight();
 imshow(img_rgb);
 
+%%
+gp = getGraspingPointRight();
 %img_bw = rgb2gray(img_rgb);
 %imshow(img_bw);
-
-%%
-getId(false)
 
 %% Helper functions
 function id = getId(newId)
@@ -312,7 +305,8 @@ if max(img_bin(:)) > 0
     
     img_rgb = insertMarker(img_rgb,[ind2_original,ind1_original],'star','Color','red','size',5);
     figure(1);
-    imshow(img_rgb);
+    subplot(1,2,1); imshow(img_rgb); title('Container');
+    %imshow(img_rgb);
     
     gp = [ind2_original, ind1_original];
 else
@@ -339,8 +333,10 @@ for i=1:length(elements)
         img_rgb = insertMarker(img_rgb,[elements{1,i}.grasp_point(1),elements{1,i}.grasp_point(2)],'star','Color','blue','size',5);
     end
 end
-figure(2);
-imshow(img_rgb)
+%figure(2);
+%imshow(img_rgb)
+figure(1);
+subplot(1,2,2); imshow(img_rgb); title('Object detection');
 end
 
 function writeAngles(a,b,g)
