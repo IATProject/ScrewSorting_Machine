@@ -1,6 +1,7 @@
 from twisted.internet import protocol, reactor
 from Roboter import Roboter
 from Camera import Camera
+from subprocess import call
 
 class ServerProtocol(protocol.Protocol):
     Roboter = Roboter()
@@ -45,6 +46,9 @@ class ServerProtocol(protocol.Protocol):
             id = int(msg[11:])
             print("capture image")
             self.Camera.capture(id)
+        elif msg[0:8] == "shutdown":
+            print("Shutdowm")
+            call("sudo poweroff", shell=True)
         else:
             print("Invalid command")
         
