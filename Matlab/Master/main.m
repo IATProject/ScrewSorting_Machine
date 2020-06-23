@@ -19,13 +19,13 @@ detector.YOLO = load('detector.mat');
 % needs to be done once (for a specific setup (camera position))
 
 % Read RGB image (full resolution)
-%coin_rgb = imread('scale_img/img.jpg');
+% coin_rgb = imread('scale_img/img_12.jpg');
 
 % cal_obj_size ... mm
 cal_obj_size = 21.25;       %referenz size: 5 Cent coin
 
 % scale ... mm/pixel
-%scale = calc_scale(coin_rgb, cal_obj_size);
+% scale = calc_scale(coin_rgb, cal_obj_size);
 scale = 0.1911;            %have to be very precicly, error 5px ~ 0.32mm
 
 %%
@@ -79,7 +79,7 @@ while true
                 controlEM(false);
                 moveL(0,-100,38,false);
                 moveL(0,-50,38,false);
-                moveL(0,-50,100,false);;
+                moveL(0,-50,100,false);
                 moveJ(70,0,100,false)
             elseif isequal('nut',type)
                 gp = elements{1,i}.grasp_point;
@@ -136,6 +136,15 @@ end
 controlLight(false);
 
 %%
+controlLight(false);
+%%
+%i = 0;
+captureImage();
+img_rgb = getImageLeft();
+imwrite(img_rgb, "img_" + i + ".jpg");
+i = i+1;
+
+%%
 global tClient
 tClient = tcpclient('192.168.1.243', 3000);
 
@@ -146,7 +155,12 @@ controlEM(false);
 %controlEM(false);
 
 %%
+shutdownRpi();
+
+%%
 controlLight(true);
+
+%%
 pause(4);
 captureImage();
 controlLight(false)
@@ -381,6 +395,12 @@ function shake()
 global tClient
 write(tClient, uint8('shake'));
 waitForJobCompl();
+end
+
+function shutdownRpi()
+global tClient
+write(tClient, uint8('shutdown'));
+%waitForJobCompl();
 end
 
 function controlLight(on)

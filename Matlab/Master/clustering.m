@@ -19,10 +19,15 @@ img_norm = imresize(img_norm, resize_factor);
 % Binarize image
 img_bin = imbinarize(img_norm,0.5);
 img_bin = im2uint8(img_bin);
-
 img_bin = ~img_bin;
-
 img_bin = imfill(img_bin, 'holes');
+
+% Convert the label matrix into RGB image, using default settings.
+CC = bwconncomp(img_bin);
+L = labelmatrix(CC);
+RGB = label2rgb(L);
+imwrite(RGB,'seg_cluster2.jpg');
+
 
 % % Morphological closing to fill gaps
 % se = strel('disk',8);

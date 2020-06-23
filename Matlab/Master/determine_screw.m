@@ -59,12 +59,14 @@ img_cut = bwareaopen(img_cut,area_opening,8);
 [x_min_cut,x_mini_cut] = min(x_cut);
 
 % calculate the orientation of the screw, than cut the image
-if x_max_cut  < size(img_rot,2)/2 ||   x_min_cut  < size(img_rot,2)/2   %left
-    seg_head = img_rot(:,1:x_max_cut);
-    seg_body = img_rot(:,x_max_cut+1:end);
-else
-    seg_body = img_rot(:,1:x_min_cut);
-    seg_head = img_rot(:,x_min_cut+1:end);
+if ~isempty(x_cut)
+    if x_max_cut  < size(img_rot,2)/2  &&  x_min_cut  < size(img_rot,2)*2/3   %left
+        seg_head = img_rot(:,1:x_max_cut);
+        seg_body = img_rot(:,x_max_cut+1:end);
+    else
+        seg_body = img_rot(:,1:x_min_cut);
+        seg_head = img_rot(:,x_min_cut+1:end);
+    end
 end
 
 % calculate the length
@@ -94,26 +96,26 @@ end
 % plots
 if parameter.plots == 1
     figure('units','normalized','outerposition',[0 0 1 1]);
-    subplot(3,4,5); imshow(img); title('grasping point');
+    subplot(3,4,5); imshow(img); title('Grasping point');
     hold all
     plot(grasp_x,grasp_y,'*');
     yy = linspace(1, size(img_rot,2), 50);
-    subplot(3,4,6);imshow(img_rot); title('fitted line and rotated');
+    subplot(3,4,6);imshow(img_rot); title('Fitted line and rotated');
     hold all
-    plot( yy, polyval(p_fit_rot, yy), '.-');
+    plot( yy, polyval(p_fit_rot, yy), '-');
     subplot(3,4,7); imshow(img_rot); title('Interest Points');
     hold on
     plot(C.Location(:,1),C.Location(:,2),'r*');
     plot( yy, polyval(p_fit_rot, yy), 'b-');
-    subplot(3,4,8); imshow(img_rot); title('diameter');
+    subplot(3,4,8); imshow(img_rot); title('Diameter');
     hold all
-    plot( yy, polyval(p_fit_rot, yy), '.-',yy, polyval(p_fit_rot, yy)+r, '.-',yy, polyval(p_fit_rot, yy)-r, '.-');
+    plot( yy, polyval(p_fit_rot, yy), '-',yy, polyval(p_fit_rot, yy)+r, '.-',yy, polyval(p_fit_rot, yy)-r, '.-');
     plot(x_cp,y_cp,'g*');
-    subplot(3,4,9); imshow(img_cut); title('cut');
+    subplot(3,4,9); imshow(img_cut); title('Cut');
     hold all
     plot(x_max_cut,y_cut(x_maxi_cut),'-*',x_min_cut,y_cut(x_mini_cut),'-*');
-    subplot(3,4,10); imshow(seg_head); title('head');
-    subplot(3,4,11); imshow(seg_body); title('body');
+    subplot(3,4,10); imshow(seg_head); title('Head');
+    subplot(3,4,11); imshow(seg_body); title('Body');
     hold on
     plot(x_max_body,y_body(x_maxi_body),'-*',x_min_body,y_body(x_mini_body),'-*');
     
