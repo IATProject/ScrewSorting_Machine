@@ -38,8 +38,9 @@ edges_r = parameter.res_D / parameter.scale;
 max_r   = parameter.max_D / parameter.scale;
 edges = (0:edges_r:max_r);
 N = histcounts(d,edges);
-[~,max_index] = max(N);
-r = edges_r*max_index;          %besser bearbeiten in diesem Pin, vl auch noch Gewindeinfo nutzen um Holz und Metallschrauben zu unterscheiden!
+[sortedX, sortedInds] = sort(N(:),'descend');
+max_index = max(sortedInds(1:2));
+r = edges_r*max_index;  
 D_mm = round(2*r*parameter.scale,parameter.digits);
 
 % cut out the area between the two lines, than find the leftmost point or
@@ -74,6 +75,11 @@ if ~isempty(x_cut)
 [x_min_body,x_mini_body] = min(x_body);
 L_mm = abs(x_max_body-x_min_body)*parameter.scale;
 L_mm = round(L_mm,parameter.digits);
+% % claculate the diameter
+% [y_max_body,y_maxi_body] = max(y_body);
+% [y_min_body,y_mini_body] = min(y_body);
+% D_mm = abs(y_max_body-y_min_body)*parameter.scale;
+% D_mm = round(D_mm,parameter.digits);
 end
 
 % Parameter to struct, catch error in calculation
@@ -117,5 +123,7 @@ if parameter.plots == 1
     subplot(3,4,11); imshow(seg_body); title('Body');
     hold on
     plot(x_max_body,y_body(x_maxi_body),'-*',x_min_body,y_body(x_mini_body),'-*');
+%     hold on
+%     plot(x_body(y_maxi_body),y_max_body,'-*',x_body(y_mini_body),y_min_body,'-*');
     
 end
