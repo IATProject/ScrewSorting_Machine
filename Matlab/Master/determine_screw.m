@@ -38,8 +38,9 @@ edges_r = parameter.res_D / parameter.scale;
 max_r   = parameter.max_D / parameter.scale;
 edges = (0:edges_r:max_r);
 N = histcounts(d,edges);
-[~,max_index] = max(N);
-r = edges_r*max_index;          %besser bearbeiten in diesem Pin, vl auch noch Gewindeinfo nutzen um Holz und Metallschrauben zu unterscheiden!
+[sortedX, sortedInds] = sort(N(:),'descend');
+max_index = max(sortedInds(1:2));
+r = edges_r*max_index;  
 D_mm = round(2*r*parameter.scale,parameter.digits);
 
 % cut out the area between the two lines, than find the leftmost point or
@@ -59,6 +60,7 @@ img_cut = bwareaopen(img_cut,area_opening,8);
 [x_min_cut,x_mini_cut] = min(x_cut);
 
 % calculate the orientation of the screw, than cut the image
+L_mm = 0;
 if ~isempty(x_cut)
     if x_max_cut  < size(img_rot,2)/2  &&  x_min_cut  < size(img_rot,2)*2/3   %left
         seg_head = img_rot(:,1:x_max_cut);
@@ -67,15 +69,18 @@ if ~isempty(x_cut)
         seg_body = img_rot(:,1:x_min_cut);
         seg_head = img_rot(:,x_min_cut+1:end);
     end
-end
-
 % calculate the length
 [y_body,x_body] = find(seg_body);
 [x_max_body,x_maxi_body] = max(x_body);
 [x_min_body,x_mini_body] = min(x_body);
 L_mm = abs(x_max_body-x_min_body)*parameter.scale;
 L_mm = round(L_mm,parameter.digits);
-
+% % claculate the diameter
+% [y_max_body,y_maxi_body] = max(y_body);
+% [y_min_body,y_mini_body] = min(y_body);
+% D_mm = abs(y_max_body-y_min_body)*parameter.scale;
+% D_mm = round(D_mm,parameter.digits);
+end
 
 % Parameter to struct, catch error in calculation
 if ~isempty(D_mm) && ~isempty(L_mm) ...
@@ -118,5 +123,7 @@ if parameter.plots == 1
     subplot(3,4,11); imshow(seg_body); title('Body');
     hold on
     plot(x_max_body,y_body(x_maxi_body),'-*',x_min_body,y_body(x_mini_body),'-*');
+%     hold on
+%     plot(x_body(y_maxi_body),y_max_body,'-*',x_body(y_mini_body),y_min_body,'-*');
     
 end

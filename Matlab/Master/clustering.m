@@ -23,10 +23,10 @@ img_bin = ~img_bin;
 img_bin = imfill(img_bin, 'holes');
 
 % Convert the label matrix into RGB image, using default settings.
-CC = bwconncomp(img_bin);
-L = labelmatrix(CC);
-RGB = label2rgb(L);
-imwrite(RGB,'seg_cluster2.jpg');
+% CC = bwconncomp(img_bin);
+% L = labelmatrix(CC);
+% RGB = label2rgb(L);
+% imwrite(RGB,'seg_cluster2.jpg');
 
 
 % % Morphological closing to fill gaps

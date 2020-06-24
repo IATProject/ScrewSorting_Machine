@@ -73,7 +73,8 @@ while true
                 moveL(x,y,50,false);
                 moveL(x,y,z,true);
                 controlEM(true);
-                moveL(x,y,100,false);
+                moveL(x,y,30,false);
+                moveL(50,-60,100,false);
                 moveL(0,-100,100,false);
                 moveL(0,-100,60,false);
                 controlEM(false);
@@ -87,7 +88,8 @@ while true
                 moveL(x,y,50,false);
                 moveL(x,y,z,true);
                 controlEM(true);
-                moveL(x,y,100,false);
+                moveL(x,y,30,false);
+                moveL(80,40,100,false);
                 moveJ(15,80,100,false);
                 moveL(15,80,53,false);
                 controlEM(false);
@@ -100,7 +102,8 @@ while true
                 moveL(x,y,50,false);
                 moveL(x,y,z,true);
                 controlEM(true);
-                moveL(x,y,100,false);
+                moveL(x,y,20,false);
+                moveL(80,40,100,false);
                 moveJ(-10,80,100,false);
                 moveL(-10,80,53,false);
                 controlEM(false);
@@ -138,11 +141,20 @@ controlLight(false);
 %%
 controlLight(false);
 %%
-%i = 0;
+% i = 0;
 captureImage();
 img_rgb = getImageLeft();
 imwrite(img_rgb, "img_" + i + ".jpg");
 i = i+1;
+
+%%
+controlLight(true);
+
+%%
+captureImage();
+img_rgb = getImageLeft();
+elements = detect_element(img_rgb,detector,scale);
+displayDetectedElements(img_rgb,elements);
 
 %%
 global tClient
@@ -199,6 +211,7 @@ end
 
 function img_rgb = getImage()
 filename = '\\RASPBERRYPI\share\img_' + string(getId(false)) + '.jpg';
+%filename = 'img_' + string(2) + '.jpg';
 
 cnt = 0;
 fileExists = false;
