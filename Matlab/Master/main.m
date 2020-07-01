@@ -55,7 +55,7 @@ while true
         moveL(80,-40,50,false);
         controlEM(false);
         moveL(80,-90,20,false);
-        moveL(90,-120,20,false); % End Position for dropping
+        moveL(90,-120,20,false);
         moveL(80,-40,140,false);
         state = "processImg";
     elseif state == "processImg"
@@ -119,7 +119,7 @@ while true
                 moveL(80,-40,70,false);
                 controlEM(false);
                 moveL(80,-90,20,false);
-                moveL(90,-120,20,false); % End Position for dropping
+                moveL(90,-120,20,false);
                 moveL(80,-40,140,false);
                 repeateProcess = true;
                 %elseif isequal('nothing',type)
@@ -138,54 +138,10 @@ end
 
 controlLight(false);
 
-%%
-controlLight(false);
-%%
-% i = 0;
-captureImage();
-img_rgb = getImageLeft();
-imwrite(img_rgb, "img_" + i + ".jpg");
-i = i+1;
-
-%%
-controlLight(true);
-
-%%
-captureImage();
-img_rgb = getImageLeft();
-elements = detect_element(img_rgb,detector,scale);
-displayDetectedElements(img_rgb,elements);
-
-%%
-global tClient
-tClient = tcpclient('192.168.1.243', 3000);
-
-%%
-writeAngles(0,0,90);
-controlEM(false);
-%pause(10);
-%controlEM(false);
-
-%%
+%% Shut down
+% Befor plugging off the power cable, to Raspberry Pi should be shut down
+% to prevent the SD card to get corrupt
 shutdownRpi();
-
-%%
-controlLight(true);
-
-%%
-pause(4);
-captureImage();
-controlLight(false)
-
-
-%%
-img_rgb = getImageRight();
-imshow(img_rgb);
-
-%%
-gp = getGraspingPointRight();
-%img_bw = rgb2gray(img_rgb);
-%imshow(img_bw);
 
 %% Helper functions
 function id = getId(newId)
@@ -211,7 +167,6 @@ end
 
 function img_rgb = getImage()
 filename = '\\RASPBERRYPI\share\img_' + string(getId(false)) + '.jpg';
-%filename = 'img_' + string(2) + '.jpg';
 
 cnt = 0;
 fileExists = false;
@@ -273,8 +228,8 @@ img_rgb = getImage();
 X = [100;555;555;85];
 Y = [105;105;555;550];
 
-x=[1;500;500;1]; % 500
-y=[1;1;500;500]; % 500
+x=[1;500;500;1];
+y=[1;1;500;500];
 
 A=zeros(8,8);
 A(1,:)=[X(1),Y(1),1,0,0,0,-1*X(1)*x(1),-1*Y(1)*x(1)];
@@ -333,7 +288,6 @@ if max(img_bin(:)) > 0
     img_rgb = insertMarker(img_rgb,[ind2_original,ind1_original],'star','Color','red','size',5);
     figure(1);
     subplot(1,2,1); imshow(img_rgb); title('Container');
-    %imshow(img_rgb);
     
     gp = [ind2_original, ind1_original];
 else
@@ -444,7 +398,6 @@ while true
     data = read(tClient);
     data = string(char(data));
     if data ~= ""
-        %disp(data)
         break
     end
     if etime(clock,tStart) > tMax
