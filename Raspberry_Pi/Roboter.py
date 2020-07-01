@@ -123,8 +123,6 @@ class Roboter:
             else:
                 time.sleep(self.tSleep)
             
-            # print("x:" + str(x_) + " y:" + str(y_) + " z:" + str(z_))
-            
             self.writePosition(x_,y_,z_)
 
         
@@ -332,7 +330,5 @@ class Roboter:
         alpha = alpha.real*180.0/math.pi
         beta = beta.real*180.0/math.pi
         gamma = gamma.real*180.0/math.pi
-        
-        #print("x_:" + str(x_) + " z_:" + str(z_) + " beta:" + str(beta) + " gamma:" + str(gamma))
         
         return [alpha, beta, gamma]

@@ -1,3 +1,5 @@
+# !/usr/bin/env python
+
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 import numpy as np
@@ -12,13 +14,11 @@ class Camera:
     def __init__(self):
         self.camera = PiCamera()
         self.camera.resolution = (1000, 600)
-        #self.camera.quality = 100
         self.camera.exposure_compensation = 10
         self.camera.awb_mode = 'incandescent'
         self.camera.sharpness = 20
         self.camera.contrast = 100
         self.camera.saturation = 0
-        #camera.rotation = 180
         self.camera_array = np.empty((1088,720,3), dtype=np.uint8)
     
     

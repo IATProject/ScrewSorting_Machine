@@ -1,3 +1,5 @@
+# !/usr/bin/env python
+
 from twisted.internet import protocol, reactor
 from Roboter import Roboter
 from Camera import Camera
